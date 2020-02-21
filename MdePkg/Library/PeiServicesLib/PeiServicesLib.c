@@ -669,6 +669,9 @@ InternalPeiServicesInstallFvInfoPpi (
     // ((EFI_FIRMWARE_VOLUME_HEADER *) FvInfo)->FileSystemGuid can be just used for both
     // firmware file system 2 and 3 format.
     //
+    DEBUG ((EFI_D_ERROR, "Actual file system GUID: %x\n", &(((EFI_FIRMWARE_VOLUME_HEADER *) FvInfo)->FileSystemGuid)));
+    DEBUG ((EFI_D_ERROR, "Expected file system GUID: %x\n", &gEfiFirmwareFileSystem2Guid));
+    DEBUG ((EFI_D_ERROR, "FFSv3 GUID: %x\n", &gEfiFirmwareFileSystem3Guid));
     ASSERT (CompareGuid (&(((EFI_FIRMWARE_VOLUME_HEADER *) FvInfo)->FileSystemGuid), &gEfiFirmwareFileSystem2Guid));
   }
   FvInfoPpi->FvInfo = (VOID *) FvInfo;

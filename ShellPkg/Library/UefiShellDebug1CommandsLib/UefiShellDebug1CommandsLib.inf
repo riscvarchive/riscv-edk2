@@ -26,6 +26,7 @@
   Compress.c
   EfiCompress.c
   EfiDecompress.c
+  EmbeddedRamdisk.c
   Dmem.c
   LoadPciRom.c
   Mm.c
@@ -120,6 +121,7 @@
   gEfiBlockIoProtocolGuid                     ## SOMETIMES_CONSUMES
   gEfiSimplePointerProtocolGuid               ## SOMETIMES_CONSUMES
   gEfiCpuIo2ProtocolGuid                      ## SOMETIMES_CONSUMES
+  gEfiRamDiskProtocolGuid                     ## SOMETIMES_CONSUMES
 
 [Guids]
   gEfiGlobalVariableGuid          ## SOMETIMES_CONSUMES ## GUID
@@ -129,3 +131,6 @@
   gEfiAcpi10TableGuid             ## SOMETIMES_CONSUMES ## SystemTable
   gEfiAcpi20TableGuid             ## SOMETIMES_CONSUMES ## SystemTable
   gShellDebug1HiiGuid             ## SOMETIMES_CONSUMES ## HII
+  gEdkiiMemoryProfileGuid         ## SOMETIMES_CONSUMES ## GUID
+  gEfiVirtualCdGuid               ## SOMETIMES_CONSUMES ## GUID
+  gEfiVirtualDiskGuid             ## SOMETIMES_CONSUMES ## GUID

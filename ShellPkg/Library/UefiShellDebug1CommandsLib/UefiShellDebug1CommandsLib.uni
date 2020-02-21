@@ -1136,6 +1136,10 @@
 "  * To edit the 'shell.log' file:\r\n"
 "    fs0:\> edit shell.log\r\n"
 
+#string STR_GET_HELP_EMBEDDEDRAMDISK #language en-US ""
+No help for embeddedramdisk, sorry :(
+""
+
 #string STR_GET_HELP_HEXEDIT      #language en-US ""
 ".TH hexedit 0 "Provides a full screen hex editor for files, block devices, or memory."\r\n"
 ".SH NAME\r\n"

@@ -265,6 +265,8 @@ GetSectionFromAnyFvByFileType  (
     return Status;
   }
 
+  DEBUG ((EFI_D_ERROR, "%d FVs are available\n", HandleCount));
+
   //
   // Go through FVs one by one to find the required section data.
   //
@@ -415,6 +417,8 @@ GetSectionFromAnyFv  (
   if (EFI_ERROR (Status)) {
     goto Done;
   }
+
+  DEBUG ((EFI_D_ERROR, "There are %d FVs\n", HandleCount));
 
   for (Index = 0; Index < HandleCount; Index++) {
     //

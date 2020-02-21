@@ -36,6 +36,7 @@
 
 [Guids]
   gEfiFirmwareFileSystem2Guid        ## SOMETIMES_PRODUCES ## GUID # FV File System Guid.
+  gEfiFirmwareFileSystem3Guid        ## SOMETIMES_PRODUCES ## GUID # FV File System Guid.
 
 [Ppis]
   gEfiPeiFirmwareVolumeInfoPpiGuid   ## SOMETIMES_PRODUCES

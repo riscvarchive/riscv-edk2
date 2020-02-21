@@ -305,6 +305,19 @@ ShellCommandRunHexEdit (
   );
 
 /**
+  Function for 'embeddedramdisk' command.
+
+  @param[in] ImageHandle  Handle to the Image (NULL if Internal).
+  @param[in] SystemTable  Pointer to the System Table (NULL if Internal).
+**/
+SHELL_STATUS
+EFIAPI
+ShellCommandRunEmbeddedRamdisk (
+  IN EFI_HANDLE        ImageHandle,
+  IN EFI_SYSTEM_TABLE  *SystemTable
+  );
+
+/**
   Clear the line at the specified Row.
 
   @param[in] Row                The row number to be cleared ( start from 1 )

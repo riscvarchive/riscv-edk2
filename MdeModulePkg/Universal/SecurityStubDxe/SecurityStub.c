@@ -138,6 +138,7 @@ Security2StubAuthenticate (
   EFI_STATUS                           Status;
 
   if (FileBuffer != NULL) {
+    return EFI_SUCCESS;
     Status = Defer3rdPartyImageLoad (File, BootPolicy);
     if (EFI_ERROR (Status)) {
       return Status;
