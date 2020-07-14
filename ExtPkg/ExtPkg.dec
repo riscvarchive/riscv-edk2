@@ -1,0 +1,5 @@
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = Ext2Pkg
+  PACKAGE_GUID                   = 8EA68A2C-99CB-4332-85C6-DD5864EAA674
+  PACKAGE_VERSION                = 0.1

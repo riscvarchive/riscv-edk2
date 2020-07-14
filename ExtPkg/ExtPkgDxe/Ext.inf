@@ -1,0 +1,57 @@
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = Ext2
+  FILE_GUID                      = 961578FE-B6B7-44c3-AF35-6BC705CD2B2F
+  MODULE_TYPE                    = UEFI_DRIVER
+  VERSION_STRING                 = 1.0
+
+  ENTRY_POINT                    = fsw_efi_main
+  UNLOAD_IMAGE                   = ExtUnload
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = ARM
+#
+#  DRIVER_BINDING                =  gExt2DriverBinding
+#  COMPONENT_NAME                =  gExt2ComponentName
+#  COMPONENT_NAME2               =  gExt2ComponentName2
+#
+
+[Sources]
+	fsw_core.c
+	fsw_ext2.c
+	fsw_ext4.c
+	fsw_efi.c
+	fsw_efi_lib.c
+	fsw_lib.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiRuntimeServicesTableLib
+  UefiBootServicesTableLib
+  MemoryAllocationLib
+  BaseMemoryLib
+  BaseLib
+  UefiLib
+  UefiDriverEntryPoint
+  DebugLib
+  PcdLib
+
+[Guids]
+  gEfiFileInfoGuid
+  gEfiFileSystemInfoGuid
+  gEfiFileSystemVolumeLabelInfoIdGuid
+
+[Protocols]
+  gEfiDiskIoProtocolGuid
+  gEfiBlockIoProtocolGuid
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiUnicodeCollationProtocolGuid
+  gEfiUnicodeCollation2ProtocolGuid
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultLang
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLang
