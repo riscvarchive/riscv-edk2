@@ -391,6 +391,7 @@
   RiscV64/DisableInterrupts.c
   RiscV64/EnableInterrupts.c
   RiscV64/CpuPause.c
+  RiscV64/MemoryFence.S             | GCC
   RiscV64/RiscVSetJumpLongJump.S    | GCC
   RiscV64/RiscVCpuBreakpoint.S      | GCC
   RiscV64/RiscVCpuPause.S           | GCC
