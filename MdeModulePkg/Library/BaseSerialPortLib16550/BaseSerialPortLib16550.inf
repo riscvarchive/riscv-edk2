@@ -23,7 +23,7 @@
   PcdLib
   IoLib
   PlatformHookLib
-  PciLib
+  #PciLib
 
 [Sources]
   BaseSerialPortLib16550.c
