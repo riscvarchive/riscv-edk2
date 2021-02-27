@@ -359,10 +359,10 @@ Defer3rdPartyImageLoad (
     // The image might be second time loaded before EndOfDxe,
     // So ImageInfo can be non-NULL.
     //
-    //if (ImageInfo == NULL) {
-    //  QueueImage (File, BootPolicy);
-    //}
-    return EFI_SUCCESS;
+    if (ImageInfo == NULL) {
+      QueueImage (File, BootPolicy);
+    }
+    return EFI_ACCESS_DENIED;
   }
 }
 
