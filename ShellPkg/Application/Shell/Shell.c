@@ -2444,6 +2444,8 @@ RunCommandOrFile(
   DevPath           = NULL;
   CalleeExitStatus  = SHELL_INVALID_PARAMETER;
 
+  DEBUG ((DEBUG_ERROR, "%a: Running command :)!zoid\n", __FUNCTION__));
+
   switch (Type) {
     case   Internal_Command:
       Status = RunInternalCommand(CmdLine, FirstParameter, ParamProtocol, CommandStatus);
@@ -2502,6 +2504,7 @@ RunCommandOrFile(
           //
           // Execute the device path
           //
+          DEBUG ((DEBUG_ERROR, "%a: Execute the device path :)!zoid\n", __FUNCTION__));
           Status = InternalShellExecuteDevicePath(
             &gImageHandle,
             DevPath,
@@ -2514,7 +2517,9 @@ RunCommandOrFile(
 
           if(EFI_ERROR (Status)) {
             CalleeExitStatus = (SHELL_STATUS) (Status & (~MAX_BIT));
+            DEBUG ((DEBUG_ERROR, "%a: Failed to execute the device path: %r, %r :(!zoid\n", __FUNCTION__, Status, StartStatus));
           } else {
+            DEBUG ((DEBUG_ERROR, "%a: Succeeded to execute the device path :)!zoid\n", __FUNCTION__));
             CalleeExitStatus = (SHELL_STATUS) StartStatus;
           }
 

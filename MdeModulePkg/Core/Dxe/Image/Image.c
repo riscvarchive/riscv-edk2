@@ -566,6 +566,8 @@ CoreLoadPeImage (
   BOOLEAN                   DstBufAlocated;
   UINTN                     Size;
 
+  DEBUG ((DEBUG_ERROR, "Trying to load image.zoid\n"));
+
   ZeroMem (&Image->ImageContext, sizeof (Image->ImageContext));
 
   Image->ImageContext.Handle    = Pe32Handle;
@@ -576,6 +578,7 @@ CoreLoadPeImage (
   //
   Status = PeCoffLoaderGetImageInfo (&Image->ImageContext);
   if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "Error with PeCoffLoaderGetImageInfo.zoid\n"));
     return Status;
   }
 
@@ -609,6 +612,7 @@ CoreLoadPeImage (
     break;
   default:
     Image->ImageContext.ImageError = IMAGE_ERROR_INVALID_SUBSYSTEM;
+    DEBUG ((DEBUG_ERROR, "IMAGE_ERROR_INVALID_SUBSYSTEM zoid\n"));
     return EFI_UNSUPPORTED;
   }
 
@@ -676,6 +680,7 @@ CoreLoadPeImage (
       }
     }
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_ERROR, "Hmm, weird issue.zoid\n"));
       return Status;
     }
     DstBufAlocated = TRUE;
@@ -739,6 +744,7 @@ CoreLoadPeImage (
   //
   Status = PeCoffLoaderRelocateImage (&Image->ImageContext);
   if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_ERROR, "Can't reloacate.zoid\n"));
     goto Done;
   }
 

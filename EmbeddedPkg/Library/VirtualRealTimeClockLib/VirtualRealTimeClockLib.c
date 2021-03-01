@@ -87,11 +87,11 @@ LibGetTime (
     // contact the edk2 mailing list, so we can try to add support for it.
     //
     EpochSeconds = BUILD_EPOCH;
-    DEBUG ((
-      DEBUG_INFO,
-      "LibGetTime: %s non volatile variable was not found - Using compilation time epoch.\n",
-      mEpochVariableName
-      ));
+    //DEBUG ((
+    //  DEBUG_INFO,
+    //  "LibGetTime: %s non volatile variable was not found - Using compilation time epoch.\n",
+    //  mEpochVariableName
+    //  ));
   }
   Counter = GetPerformanceCounter ();
   EpochSeconds += DivU64x64Remainder (Counter, Freq, &Remainder);

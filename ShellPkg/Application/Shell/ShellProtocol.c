@@ -1445,6 +1445,7 @@ InternalShellExecuteDevicePath(
     &NewHandle);
 
   if (EFI_ERROR(Status)) {
+    DEBUG ((EFI_D_INFO, "Failed to load image %r\n", Status));
     if (NewHandle != NULL) {
       gBS->UnloadImage(NewHandle);
     }
@@ -1460,6 +1461,7 @@ InternalShellExecuteDevicePath(
     EFI_OPEN_PROTOCOL_GET_PROTOCOL);
 
   if (!EFI_ERROR(Status)) {
+    DEBUG ((EFI_D_INFO, "Failed to open protocol %r\n", Status));
     //
     // If the image is not an app abort it.
     //
