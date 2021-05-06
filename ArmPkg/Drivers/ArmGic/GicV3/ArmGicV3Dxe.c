@@ -115,7 +115,7 @@ GicV3GetInterruptSourceState (
   @param This     Instance pointer for this protocol
   @param Source   Hardware source of the interrupt
 
-  @retval EFI_SUCCESS       Source interrupt EOI'ed.
+  @retval EFI_SUCCESS       Source interrupt ended successfully.
   @retval EFI_DEVICE_ERROR  Hardware could not be programmed.
 
 **/
@@ -374,8 +374,6 @@ GicV3DxeInitialize (
 {
   EFI_STATUS              Status;
   UINTN                   Index;
-  UINT32                  RegOffset;
-  UINTN                   RegShift;
   UINT64                  CpuTarget;
   UINT64                  MpId;
 
@@ -397,12 +395,11 @@ GicV3DxeInitialize (
     GicV3DisableInterruptSource (&gHardwareInterruptV3Protocol, Index);
 
     // Set Priority
-    RegOffset = Index / 4;
-    RegShift = (Index % 4) * 8;
-    MmioAndThenOr32 (
-      mGicDistributorBase + ARM_GIC_ICDIPR + (4 * RegOffset),
-      ~(0xff << RegShift),
-      ARM_GIC_DEFAULT_PRIORITY << RegShift
+    ArmGicSetInterruptPriority (
+      mGicDistributorBase,
+      mGicRedistributorsBase,
+      Index,
+      ARM_GIC_DEFAULT_PRIORITY
       );
   }
 

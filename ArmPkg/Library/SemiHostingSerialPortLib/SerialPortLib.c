@@ -2,6 +2,7 @@
   Serial I/O Port library functions with no library constructor/destructor
 
   Copyright (c) 2008 - 2009, Apple Inc. All rights reserved.<BR>
+  Copyright (c) 2021, Arm Limited. All rights reserved.<BR>
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -36,11 +37,11 @@ SerialPortInitialize (
 /**
   Write data to serial device.
 
-  @param  Buffer           Point of data buffer which need to be writed.
+  @param  Buffer           Point of data buffer which need to be written.
   @param  NumberOfBytes    Number of output bytes which are cached in Buffer.
 
   @retval 0                Write data failed.
-  @retval !0               Actual number of bytes writed to serial device.
+  @retval !0               Actual number of bytes written to serial device.
 
 **/
 
@@ -55,9 +56,12 @@ SerialPortWrite (
 )
 {
   UINT8 PrintBuffer[PRINT_BUFFER_SIZE];
-  UINTN SourceIndex      = 0;
-  UINTN DestinationIndex = 0;
+  UINTN SourceIndex;
+  UINTN DestinationIndex;
   UINT8 CurrentCharacter;
+
+  SourceIndex      = 0;
+  DestinationIndex = 0;
 
   while (SourceIndex < NumberOfBytes)
   {
@@ -99,7 +103,7 @@ SerialPortWrite (
 /**
   Read data from serial device and save the datas in buffer.
 
-  @param  Buffer           Point of data buffer which need to be writed.
+  @param  Buffer           Point of data buffer which need to be written.
   @param  NumberOfBytes    Number of output bytes which are cached in Buffer.
 
   @retval 0                Read data failed.

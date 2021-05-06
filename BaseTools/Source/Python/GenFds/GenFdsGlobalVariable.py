@@ -1,7 +1,7 @@
 ## @file
 # Global variables for GenFds
 #
-#  Copyright (c) 2007 - 2018, Intel Corporation. All rights reserved.<BR>
+#  Copyright (c) 2007 - 2021, Intel Corporation. All rights reserved.<BR>
 #
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -27,10 +27,11 @@ from Common.TargetTxtClassObject import TargetTxtDict
 from Common.ToolDefClassObject import ToolDefDict
 from AutoGen.BuildEngine import ToolBuildRule
 import Common.DataType as DataType
-from Common.Misc import PathClass
+from Common.Misc import PathClass,CreateDirectory
 from Common.LongFilePathSupport import OpenLongFilePath as open
 from Common.MultipleWorkspace import MultipleWorkspace as mws
 import Common.GlobalData as GlobalData
+from Common.BuildToolError import *
 
 ## Global variables
 #
@@ -463,12 +464,28 @@ class GenFdsGlobalVariable:
                     GenFdsGlobalVariable.SecCmdList.append(' '.join(Cmd).strip())
             else:
                 SectionData = array('B', [0, 0, 0, 0])
-                SectionData.fromstring(Ui.encode("utf_16_le"))
+                SectionData.fromlist(array('B',Ui.encode('utf-16-le')).tolist())
                 SectionData.append(0)
                 SectionData.append(0)
                 Len = len(SectionData)
                 GenFdsGlobalVariable.SectionHeader.pack_into(SectionData, 0, Len & 0xff, (Len >> 8) & 0xff, (Len >> 16) & 0xff, 0x15)
-                SaveFileOnChange(Output, SectionData.tostring())
+
+
+                DirName = os.path.dirname(Output)
+                if not CreateDirectory(DirName):
+                    EdkLogger.error(None, FILE_CREATE_FAILURE, "Could not create directory %s" % DirName)
+                else:
+                    if DirName == '':
+                        DirName = os.getcwd()
+                    if not os.access(DirName, os.W_OK):
+                        EdkLogger.error(None, PERMISSION_FAILURE, "Do not have write permission on directory %s" % DirName)
+
+                try:
+                    with open(Output, "wb") as Fd:
+                        SectionData.tofile(Fd)
+                        Fd.flush()
+                except IOError as X:
+                    EdkLogger.error(None, FILE_CREATE_FAILURE, ExtraData='IOError %s' % X)
 
         elif Ver:
             Cmd += ("-n", Ver)
@@ -858,14 +875,27 @@ def FindExtendTool(KeyStringList, CurrentArchList, NameGuid):
     ToolOptionKey = None
     KeyList = None
     for tool_def in ToolDefinition.items():
-        if NameGuid.lower() == tool_def[1].lower():
-            KeyList = tool_def[0].split('_')
-            Key = KeyList[0] + \
-                  '_' + \
-                  KeyList[1] + \
-                  '_' + \
-                  KeyList[2]
-            if Key in KeyStringList and KeyList[4] == DataType.TAB_GUID:
+        KeyList = tool_def[0].split('_')
+        if len(KeyList) < 5:
+            continue
+        if KeyList[4] != DataType.TAB_GUID:
+            continue
+        if NameGuid.lower() != tool_def[1].lower():
+            continue
+        Key = KeyList[0] + \
+                '_' + \
+                KeyList[1] + \
+                '_' + \
+                KeyList[2]
+        for KeyString in KeyStringList:
+            KeyStringBuildTarget, KeyStringToolChain, KeyStringArch = KeyString.split('_')
+            if KeyList[0] == DataType.TAB_STAR:
+                KeyList[0] = KeyStringBuildTarget
+            if KeyList[1] == DataType.TAB_STAR:
+                KeyList[1] = KeyStringToolChain
+            if KeyList[2] == DataType.TAB_STAR:
+                KeyList[2] = KeyStringArch
+            if KeyList[0] == KeyStringBuildTarget and KeyList[1] == KeyStringToolChain and KeyList[2] == KeyStringArch:
                 ToolPathKey   = Key + '_' + KeyList[3] + '_PATH'
                 ToolOptionKey = Key + '_' + KeyList[3] + '_FLAGS'
                 ToolPath = ToolDefinition.get(ToolPathKey)

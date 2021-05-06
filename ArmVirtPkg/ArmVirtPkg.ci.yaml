@@ -5,9 +5,27 @@
 # used for code analysis.
 #
 # Copyright (c) Microsoft Corporation
+# Copyright (c) 2020, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2020, ARM Limited. All rights reserved.
+#
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
 {
+    ## options defined .pytool/Plugin/LicenseCheck
+    "LicenseCheck": {
+        "IgnoreFiles": []
+    },
+    "EccCheck": {
+        ## Exception sample looks like below:
+        ## "ExceptionList": [
+        ##     "<ErrorID>", "<KeyWord>"
+        ## ]
+        "ExceptionList": [
+        ],
+        ## Both file path and directory path are accepted.
+        "IgnoreFiles": [
+        ]
+    },
     ## options defined .pytool/Plugin/CompilerPlugin
     "CompilerPlugin": {
         "DscPath": "" # Don't support this test
@@ -34,6 +52,7 @@
             "OvmfPkg/OvmfPkg.dec",
             "EmbeddedPkg/EmbeddedPkg.dec",
             "ArmPlatformPkg/ArmPlatformPkg.dec",
+            "PcAtChipsetPkg/PcAtChipsetPkg.dec",
             "SecurityPkg/SecurityPkg.dec",
             "ShellPkg/ShellPkg.dec"  #Is this ok?
         ],
@@ -95,7 +114,8 @@
             "unbootable",
             "virt's",
             "werror",
-            "xenio"
+            "xenio",
+            "kvmtool"
         ],           # words to extend to the dictionary for this package
         "IgnoreStandardPaths": [],   # Standard Plugin defined paths that should be ignore
         "AdditionalIncludePaths": [] # Additional paths to spell check (wildcards supported)

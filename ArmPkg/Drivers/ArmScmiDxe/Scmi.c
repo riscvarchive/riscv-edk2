@@ -1,6 +1,6 @@
 /** @file
 
-  Copyright (c) 2017-2018, Arm Limited. All rights reserved.
+  Copyright (c) 2017-2021, Arm Limited. All rights reserved.
 
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -95,7 +95,7 @@ ScmiCommandExecute (
   // Fill in message header.
   MessageHeader = SCMI_MESSAGE_HEADER (
                     Command->MessageId,
-                    SCMI_MESSAGE_TYPE_COMMAND,
+                    ScmiMessageTypeCommand,
                     Command->ProtocolId
                     );
 
@@ -123,7 +123,7 @@ ScmiCommandExecute (
 
   Response = (SCMI_MESSAGE_RESPONSE*)MtlGetChannelPayload (Channel);
 
-  if (Response->Status != SCMI_SUCCESS) {
+  if (Response->Status != ScmiSuccess) {
     DEBUG ((DEBUG_ERROR, "SCMI error: ProtocolId = 0x%x, MessageId = 0x%x, error = %d\n",
       Command->ProtocolId,
       Command->MessageId,
@@ -161,8 +161,9 @@ ScmiProtocolDiscoveryCommon (
   )
 {
   SCMI_COMMAND  Command;
-  UINT32        PayloadLength = 0;
+  UINT32        PayloadLength;
 
+  PayloadLength = 0;
   Command.ProtocolId = ProtocolId;
   Command.MessageId  = MessageId;
 
@@ -194,7 +195,7 @@ ScmiGetProtocolVersion (
 
   Status = ScmiProtocolDiscoveryCommon (
              ProtocolId,
-             SCMI_MESSAGE_ID_PROTOCOL_VERSION,
+             ScmiMessageIdProtocolVersion,
              (UINT32**)&ProtocolVersion
              );
   if (EFI_ERROR (Status)) {
@@ -223,7 +224,7 @@ ScmiGetProtocolAttributes (
 {
   return ScmiProtocolDiscoveryCommon (
            ProtocolId,
-           SCMI_MESSAGE_ID_PROTOCOL_ATTRIBUTES,
+           ScmiMessageIdProtocolAttributes,
            ReturnValues
            );
 }
@@ -245,7 +246,7 @@ ScmiGetProtocolMessageAttributes (
 {
   return ScmiProtocolDiscoveryCommon (
            ProtocolId,
-           SCMI_MESSAGE_ID_PROTOCOL_MESSAGE_ATTRIBUTES,
+           ScmiMessageIdProtocolMessageAttributes,
            ReturnValues
            );
 }

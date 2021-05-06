@@ -268,7 +268,14 @@ class CommitMessageCheck:
         for i in range(2, count):
             if (len(lines[i]) >= 76 and
                 len(lines[i].split()) > 1 and
-                not lines[i].startswith('git-svn-id:')):
+                not lines[i].startswith('git-svn-id:') and
+                not lines[i].startswith('Reviewed-by') and
+                not lines[i].startswith('Acked-by:') and
+                not lines[i].startswith('Tested-by:') and
+                not lines[i].startswith('Reported-by:') and
+                not lines[i].startswith('Suggested-by:') and
+                not lines[i].startswith('Signed-off-by:') and
+                not lines[i].startswith('Cc:')):
                 #
                 # Print a warning if body line is longer than 75 characters
                 #
@@ -307,48 +314,11 @@ class GitDiffCheck:
         self.line_num = 0
         self.state = START
         self.new_bin = []
-        self.LicenseCheck(self.lines, self.count)
         while self.line_num < self.count and self.format_ok:
             line_num = self.line_num
             self.run()
             assert(self.line_num > line_num)
         self.report_message_result()
-
-    def LicenseCheck(self, lines, count):
-        self.ok = True
-        self.startcheck = False
-        self.license = True
-        line_index = 0
-        for line in lines:
-            if line.startswith('--- /dev/null'):
-                nextline = lines[line_index + 1]
-                added_file = self.Readdedfileformat.search(nextline).group(1)
-                added_file_extension = os.path.splitext(added_file)[1]
-                if added_file_extension in self.file_extension_list:
-                    self.startcheck = True
-                    self.license = False
-            if self.startcheck and self.license_format_preflix in line:
-                if self.bsd2_patent in line or self.bsd3_patent in line:
-                    self.license = True
-                else:
-                    for optional_license in self.license_optional_list:
-                        if optional_license in line:
-                            self.license = True
-                            self.warning(added_file)
-            if line_index + 1 == count or lines[line_index + 1].startswith('diff --') and self.startcheck:
-                if not self.license:
-                    error_message = "Invalid License in: " + added_file
-                    self.error(error_message)
-                self.startcheck = False
-                self.license = True
-            line_index = line_index + 1
-
-    def warning(self, *err):
-        count = 0
-        for line in err:
-            warning_format = 'Warning: License accepted but not BSD plus patent license in'
-            print(warning_format, line)
-            count += 1
 
     def report_message_result(self):
         if Verbose.level < Verbose.NORMAL:
@@ -389,6 +359,7 @@ class GitDiffCheck:
                 self.force_notabs = True
                 if self.filename.endswith('.sh') or \
                     self.filename.startswith('BaseTools/BinWrappers/PosixLike/') or \
+                    self.filename.startswith('BaseTools/BinPipWrappers/PosixLike/') or \
                     self.filename.startswith('BaseTools/Bin/CYGWIN_NT-5.1-i686/') or \
                     self.filename == 'BaseTools/BuildEnv':
                     #
@@ -495,7 +466,7 @@ class GitDiffCheck:
 
         stripped = line.rstrip()
 
-        if self.force_crlf and eol != '\r\n':
+        if self.force_crlf and eol != '\r\n' and (line.find('Subproject commit') == -1):
             self.added_line_error('Line ending (%s) is not CRLF' % repr(eol),
                                   line)
         if self.force_notabs and '\t' in line:
@@ -536,19 +507,6 @@ class GitDiffCheck:
             prefix = (' *', '  ')[count > 0]
             print(prefix, line)
             count += 1
-
-    license_format_preflix = 'SPDX-License-Identifier'
-
-    bsd2_patent = 'BSD-2-Clause-Patent'
-
-    bsd3_patent = 'BSD-3-Clause-Patent'
-
-    license_optional_list = ['BSD-2-Clause', 'BSD-3-Clause', 'MIT', 'Python-2.0', 'Zlib']
-
-    Readdedfileformat = re.compile(r'\+\+\+ b\/(.*)\n')
-
-    file_extension_list = [".c", ".h", ".inf", ".dsc", ".dec", ".py", ".bat", ".sh", ".uni", ".yaml", ".fdf", ".inc", "yml", ".asm", \
-                          ".asm16", ".asl", ".vfr", ".s", ".S", ".aslc", ".nasm", ".nasmb", ".idf", ".Vfr", ".H"]
 
 class CheckOnePatch:
     """Checks the contents of a git email formatted patch.

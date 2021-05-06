@@ -2,7 +2,7 @@
 # build a platform or a module
 #
 #  Copyright (c) 2014, Hewlett-Packard Development Company, L.P.<BR>
-#  Copyright (c) 2007 - 2020, Intel Corporation. All rights reserved.<BR>
+#  Copyright (c) 2007 - 2021, Intel Corporation. All rights reserved.<BR>
 #  Copyright (c) 2018, Hewlett Packard Enterprise Development, L.P.<BR>
 #  Copyright (c) 2020, ARM Limited. All rights reserved.<BR>
 #
@@ -873,7 +873,7 @@ class Build():
 
                     PcdMa.CreateCodeFile(False)
                     PcdMa.CreateMakeFile(False,GenFfsList = DataPipe.Get("FfsCommand").get((PcdMa.MetaFile.Path, PcdMa.Arch),[]))
-
+                    PcdMa.CreateAsBuiltInf()
                     # Force cache miss for PCD driver
                     if GlobalData.gBinCacheSource and self.Target in [None, "", "all"]:
                         cqueue.put((PcdMa.MetaFile.Path, PcdMa.Arch, "MakeCache", False))
@@ -888,6 +888,49 @@ class Build():
             return False, e.args[0]
         except:
             return False, UNKNOWN_ERROR
+
+    ## Add TOOLCHAIN and FAMILY declared in DSC [BuildOptions] to ToolsDefTxtDatabase.
+    #
+    # Loop through the set of build targets, tool chains, and archs provided on either
+    # the command line or in target.txt to discover FAMILY and TOOLCHAIN delclarations
+    # in [BuildOptions] sections that may be within !if expressions that may use
+    # $(TARGET), $(TOOLCHAIN), $(TOOLCHAIN_TAG), or $(ARCH) operands.
+    #
+    def GetToolChainAndFamilyFromDsc (self, File):
+        SavedGlobalDefines = GlobalData.gGlobalDefines.copy()
+        for BuildTarget in self.BuildTargetList:
+            GlobalData.gGlobalDefines['TARGET'] = BuildTarget
+            for BuildToolChain in self.ToolChainList:
+                GlobalData.gGlobalDefines['TOOLCHAIN']      = BuildToolChain
+                GlobalData.gGlobalDefines['TOOL_CHAIN_TAG'] = BuildToolChain
+                for BuildArch in self.ArchList:
+                    GlobalData.gGlobalDefines['ARCH'] = BuildArch
+                    dscobj = self.BuildDatabase[File, BuildArch]
+                    for KeyFamily, Key, KeyCodeBase in dscobj.BuildOptions:
+                        try:
+                            Target, ToolChain, Arch, Tool, Attr = Key.split('_')
+                        except:
+                            continue
+                        if ToolChain == TAB_STAR or Attr != TAB_TOD_DEFINES_FAMILY:
+                            continue
+                        try:
+                            Family = dscobj.BuildOptions[(KeyFamily, Key, KeyCodeBase)]
+                            Family = Family.strip().strip('=').strip()
+                        except:
+                            continue
+                        if TAB_TOD_DEFINES_FAMILY not in self.ToolDef.ToolsDefTxtDatabase:
+                            self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_FAMILY] = {}
+                        if ToolChain not in self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_FAMILY]:
+                            self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_FAMILY][ToolChain] = Family
+                        if TAB_TOD_DEFINES_BUILDRULEFAMILY not in self.ToolDef.ToolsDefTxtDatabase:
+                            self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_BUILDRULEFAMILY] = {}
+                        if ToolChain not in self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_BUILDRULEFAMILY]:
+                            self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_BUILDRULEFAMILY][ToolChain] = Family
+                        if TAB_TOD_DEFINES_TOOL_CHAIN_TAG not in self.ToolDef.ToolsDefTxtDatabase:
+                            self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_TOOL_CHAIN_TAG] = []
+                        if ToolChain not in self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_TOOL_CHAIN_TAG]:
+                            self.ToolDef.ToolsDefTxtDatabase[TAB_TOD_DEFINES_TOOL_CHAIN_TAG].append(ToolChain)
+        GlobalData.gGlobalDefines = SavedGlobalDefines
 
     ## Load configuration
     #
@@ -909,6 +952,26 @@ class Build():
             self.ToolChainList = self.TargetTxt.TargetTxtDictionary[TAB_TAT_DEFINES_TOOL_CHAIN_TAG]
             if self.ToolChainList is None or len(self.ToolChainList) == 0:
                 EdkLogger.error("build", RESOURCE_NOT_AVAILABLE, ExtraData="No toolchain given. Don't know how to build.\n")
+
+        if not self.PlatformFile:
+            PlatformFile = self.TargetTxt.TargetTxtDictionary[TAB_TAT_DEFINES_ACTIVE_PLATFORM]
+            if not PlatformFile:
+                # Try to find one in current directory
+                WorkingDirectory = os.getcwd()
+                FileList = glob.glob(os.path.normpath(os.path.join(WorkingDirectory, '*.dsc')))
+                FileNum = len(FileList)
+                if FileNum >= 2:
+                    EdkLogger.error("build", OPTION_MISSING,
+                                    ExtraData="There are %d DSC files in %s. Use '-p' to specify one.\n" % (FileNum, WorkingDirectory))
+                elif FileNum == 1:
+                    PlatformFile = FileList[0]
+                else:
+                    EdkLogger.error("build", RESOURCE_NOT_AVAILABLE,
+                                    ExtraData="No active platform specified in target.txt or command line! Nothing can be built.\n")
+
+            self.PlatformFile = PathClass(NormFile(PlatformFile, self.WorkspaceDir), self.WorkspaceDir)
+
+        self.GetToolChainAndFamilyFromDsc (self.PlatformFile)
 
         # check if the tool chains are defined or not
         NewToolChainList = []
@@ -935,23 +998,6 @@ class Build():
                 ToolChainFamily.append(ToolDefinition[TAB_TOD_DEFINES_FAMILY][Tool])
         self.ToolChainFamily = ToolChainFamily
 
-        if not self.PlatformFile:
-            PlatformFile = self.TargetTxt.TargetTxtDictionary[TAB_TAT_DEFINES_ACTIVE_PLATFORM]
-            if not PlatformFile:
-                # Try to find one in current directory
-                WorkingDirectory = os.getcwd()
-                FileList = glob.glob(os.path.normpath(os.path.join(WorkingDirectory, '*.dsc')))
-                FileNum = len(FileList)
-                if FileNum >= 2:
-                    EdkLogger.error("build", OPTION_MISSING,
-                                    ExtraData="There are %d DSC files in %s. Use '-p' to specify one.\n" % (FileNum, WorkingDirectory))
-                elif FileNum == 1:
-                    PlatformFile = FileList[0]
-                else:
-                    EdkLogger.error("build", RESOURCE_NOT_AVAILABLE,
-                                    ExtraData="No active platform specified in target.txt or command line! Nothing can be built.\n")
-
-            self.PlatformFile = PathClass(NormFile(PlatformFile, self.WorkspaceDir), self.WorkspaceDir)
         self.ThreadNumber   = ThreadNum()
     ## Initialize build configuration
     #
@@ -1217,7 +1263,7 @@ class Build():
             mqueue = mp.Queue()
             for m in AutoGenObject.GetAllModuleInfo:
                 mqueue.put(m)
-
+            mqueue.put((None,None,None,None,None,None,None))
             AutoGenObject.DataPipe.DataContainer = {"CommandTarget": self.Target}
             AutoGenObject.DataPipe.DataContainer = {"Workspace_timestamp": AutoGenObject.Workspace._SrcTimeStamp}
             AutoGenObject.CreateLibModuelDirs()
@@ -1265,7 +1311,6 @@ class Build():
         if BuildModule:
             BuildCommand = BuildCommand + [Target]
             LaunchCommand(BuildCommand, AutoGenObject.MakeFileDir)
-            self.CreateAsBuiltInf()
             if GlobalData.gBinCacheDest:
                 self.GenDestCache()
             elif GlobalData.gUseHashCache and not GlobalData.gBinCacheSource:
@@ -2174,6 +2219,7 @@ class Build():
             data_pipe_file = os.path.join(Pa.BuildDir, "GlobalVar_%s_%s.bin" % (str(Pa.Guid),Pa.Arch))
             Pa.DataPipe.dump(data_pipe_file)
 
+            mqueue.put((None,None,None,None,None,None,None))
             autogen_rt, errorcode = self.StartAutoGen(mqueue, Pa.DataPipe, self.SkipAutoGen, PcdMaList, cqueue)
 
             if not autogen_rt:
@@ -2275,7 +2321,6 @@ class Build():
                 #
                 ExitFlag.set()
                 BuildTask.WaitForComplete()
-                self.CreateAsBuiltInf()
                 if GlobalData.gBinCacheDest:
                     self.GenDestCache()
                 elif GlobalData.gUseHashCache and not GlobalData.gBinCacheSource:
@@ -2382,24 +2427,25 @@ class Build():
                     continue
 
                 for Arch in self.ArchList:
-                    # Build up the list of supported architectures for this build
-                    prefix = '%s_%s_%s_' % (BuildTarget, ToolChain, Arch)
-
                     # Look through the tool definitions for GUIDed tools
                     guidAttribs = []
                     for (attrib, value) in self.ToolDef.ToolsDefTxtDictionary.items():
-                        if attrib.upper().endswith('_GUID'):
-                            split = attrib.split('_')
-                            thisPrefix = '_'.join(split[0:3]) + '_'
-                            if thisPrefix == prefix:
-                                guid = self.ToolDef.ToolsDefTxtDictionary[attrib]
-                                guid = guid.lower()
-                                toolName = split[3]
-                                path = '_'.join(split[0:4]) + '_PATH'
-                                path = self.ToolDef.ToolsDefTxtDictionary[path]
-                                path = self.GetRealPathOfTool(path)
-                                guidAttribs.append((guid, toolName, path))
-
+                        GuidBuildTarget, GuidToolChain, GuidArch, GuidTool, GuidAttr = attrib.split('_')
+                        if GuidAttr.upper() == 'GUID':
+                            if GuidBuildTarget == TAB_STAR:
+                                GuidBuildTarget = BuildTarget
+                            if GuidToolChain == TAB_STAR:
+                                GuidToolChain = ToolChain
+                            if GuidArch == TAB_STAR:
+                                GuidArch = Arch
+                            if GuidBuildTarget == BuildTarget and GuidToolChain == ToolChain and GuidArch == Arch:
+                                path = '_'.join(attrib.split('_')[:-1]) + '_PATH'
+                                if path in self.ToolDef.ToolsDefTxtDictionary:
+                                    path = self.ToolDef.ToolsDefTxtDictionary[path]
+                                    path = self.GetRealPathOfTool(path)
+                                    guidAttribs.append((value.lower(), GuidTool, path))
+                    # Sort by GuidTool name
+                    sorted (guidAttribs, key=lambda x: x[1])
                     # Write out GuidedSecTools.txt
                     toolsFile = os.path.join(FvDir, 'GuidedSectionTools.txt')
                     toolsFile = open(toolsFile, 'wt')
