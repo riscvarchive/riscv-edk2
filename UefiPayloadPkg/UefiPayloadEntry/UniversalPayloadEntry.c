@@ -455,7 +455,7 @@ _ModuleEntryPoint (
     );
 
   // Initialize floating point operating environment to be compliant with UEFI spec.
-  InitializeFloatingPointUnits ();
+  //InitializeFloatingPointUnits ();
 
   // Build HOB based on information from Bootloader
   Status = BuildHobs (BootloaderParameter, &DxeFv);
@@ -468,8 +468,8 @@ _ModuleEntryPoint (
   //
   // Mask off all legacy 8259 interrupt sources
   //
-  IoWrite8 (LEGACY_8259_MASK_REGISTER_MASTER, 0xFF);
-  IoWrite8 (LEGACY_8259_MASK_REGISTER_SLAVE, 0xFF);
+  //IoWrite8 (LEGACY_8259_MASK_REGISTER_MASTER, 0xFF);
+  //IoWrite8 (LEGACY_8259_MASK_REGISTER_SLAVE, 0xFF);
 
   Hob.HandoffInformationTable = (EFI_HOB_HANDOFF_INFO_TABLE *)GetFirstHob (EFI_HOB_TYPE_HANDOFF);
   HandOffToDxeCore (DxeCoreEntryPoint, Hob);
